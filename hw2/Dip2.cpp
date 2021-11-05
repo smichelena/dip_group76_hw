@@ -33,7 +33,7 @@ cv::Mat_<float> spatialConvolution(const cv::Mat_<float>& src, const cv::Mat_<fl
         //loop through image
         for (int y = 0; y < max_y; y++){
             for (int x = 0; x < max_x; x++){
-                
+                //test!
             }
         }
     }
