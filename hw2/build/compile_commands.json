@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/mnt/c/Users/sanmi/Desktop/diphw/hw2/build",
+  "command": "/bin/x86_64-linux-gnu-g++-9   -isystem /usr/include/opencv4  -g   -std=c++11 -o CMakeFiles/unit_test.dir/unit_test.cpp.o -c /mnt/c/Users/sanmi/Desktop/diphw/hw2/unit_test.cpp",
+  "file": "/mnt/c/Users/sanmi/Desktop/diphw/hw2/unit_test.cpp"
+},
+{
+  "directory": "/mnt/c/Users/sanmi/Desktop/diphw/hw2/build",
+  "command": "/bin/x86_64-linux-gnu-g++-9   -isystem /usr/include/opencv4  -g   -std=c++11 -o CMakeFiles/main.dir/main.cpp.o -c /mnt/c/Users/sanmi/Desktop/diphw/hw2/main.cpp",
+  "file": "/mnt/c/Users/sanmi/Desktop/diphw/hw2/main.cpp"
+},
+{
+  "directory": "/mnt/c/Users/sanmi/Desktop/diphw/hw2/build",
+  "command": "/bin/x86_64-linux-gnu-g++-9   -isystem /usr/include/opencv4  -g   -std=c++11 -o CMakeFiles/code.dir/Dip2.cpp.o -c /mnt/c/Users/sanmi/Desktop/diphw/hw2/Dip2.cpp",
+  "file": "/mnt/c/Users/sanmi/Desktop/diphw/hw2/Dip2.cpp"
+}
+]

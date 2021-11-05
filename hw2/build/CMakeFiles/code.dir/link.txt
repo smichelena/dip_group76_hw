@@ -1,0 +1,2 @@
+/bin/ar qc libcode.a  CMakeFiles/code.dir/Dip2.cpp.o
+/bin/ranlib libcode.a
