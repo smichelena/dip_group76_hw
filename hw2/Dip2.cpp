@@ -11,6 +11,22 @@
 namespace dip2
 {
 
+    float local_average(const cv::Mat_<float> &src, int x_begin, int x_end, int y_begin, int y_end)
+    {
+        //compute local window average
+        float local_avg = 0.0f;
+        int counter = 0;
+        for (int k = y_begin; k < y_end; k++)
+        {
+            for (int t = x_begin; t < x_end; t++)
+            {
+                local_avg += src.at<float>(k, t);
+                counter++;
+            }
+        }
+        return local_avg / counter;
+    }
+
     /**
  * @brief Convolution in spatial domain.
  * @details Performs spatial convolution of image and filter kernel.
@@ -25,77 +41,117 @@ namespace dip2
         //obtain initial parameters
         const int w = kernel.cols;
         const int max_y = src.rows;
-        const int max_x = src.rows;
-        const int channels = src.channels();
+        const int max_x = src.cols;
+
+        //validate that kernel is a square, odd-sized matrix
+        CV_Assert(w == kernel.rows && w % 2 != 0);
 
         //create output image
         cv::Mat output = src;
 
-        //loop through channels
-        for (int c = 0; c < channels; c++)
+        //loop through image
+        for (int y = 0; y < max_y; y++)
         {
-            //loop through image
-            for (int y = 0; y < max_y; y++)
+            for (int x = 0; x < max_x; x++)
             {
-                for (int x = 0; x < max_x; x++)
+
+                //edge case handling
+                int x_begin, y_begin, x_end, y_end;
+                float local_avg = 0.0f;
+                //if we encounter an edge case we use the local avg.
+                //upper left corner
+                if (y - (w - 1) / 2 < 0 && x - (w - 1) / 2 < 0)
                 {
-                    //local average variable for edge case handling
-                    float local_avg = 0.0f;
-
-                    //edge case, outside lower bounds:
-                    if (y - (w - 1) / 2 < 0 || x - (w - 1) / 2 < 0)
-                    {
-                        //compute local window average
-                        int x_excess = (w - 1) / 2 - x + 1;
-                        int y_excess = (w - 1) / 2 - y + 1;
-                        local_avg = 0.0f;
-                        for (int k = 0; k < w - x_excess; k++)
-                        {
-                            for (int t = 0; k < w - y_excess; t++)
-                            {
-                                local_avg += (float)src.at<cv::Vec3b>(k, t)[c];
-                            }
-                        }
-                        local_avg /= (w - x_excess) * (w - y_excess);
-                    }
-                    //edge case, outside upper bounds
-                    else if (y + (w - 1) / 2 > max_y - 1 || x + (w - 1) / 2 > max_x - 1)
-                    {
-                        //compute local window average
-                        int x_excess = x + (w - 1) / 2 - max_x - 1;
-                        int y_excess = y + (w - 1) / 2 - max_y - 1;
-                        local_avg = 0.0f;
-                        for (int k = x - (w - 1) / 2; k < max_x; k++)
-                        {
-                            for (int t = y - (w - 1) / 2; k < max_y; t++)
-                            {
-                                local_avg += (float)src.at<cv::Vec3b>(k, t)[c];
-                            }
-                        }
-                        local_avg /= (w - x_excess) * (w - y_excess);
-                    }
-
-                    //convolve
-                    float conv_sum = 0.0f;
-                    for (int i = -(w - 1) / 2; i <= (w - 1) / 2; i++)
-                    {
-                        for (int j = -(w - 1) / 2; j <= (w - 1) / 2; j++)
-                        {
-                            if (y + i < 0 || x - j < 0)
-                            {
-                                conv_sum += local_avg * kernel.at<float>((w - 1) / 2 - i, (w - 1) / 2 - j);
-                            }
-                            else if (y + i > max_y || x + j > max_x)
-                            {
-                                conv_sum += local_avg * kernel.at<float>((w - 1) / 2 - i, (w - 1) / 2 - j);
-                            }
-                            conv_sum += ((float)src.at<cv::Vec3b>(y + i, x + j)[c]) * kernel.at<float>((w - 1) / 2 - i, (w - 1) / 2 - j);
-                        }
-                    }
-                    output.at<cv::Vec3b>(y, x)[c] = (int)conv_sum; //cast to int ?
+                    x_begin = 0;
+                    y_begin = 0;
+                    x_end = x + (w - 1) / 2;
+                    y_end = y + (w - 1) / 2;
+                    local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
                 }
+                //upper right corner
+                else if (y - (w - 1) / 2 < 0 && x + (w - 1) / 2 > max_x - 1)
+                {
+                    x_begin = x - (w - 1) / 2;
+                    x_end = max_x;
+                    y_begin = 0;
+                    y_end = y + (w - 1) / 2;
+                    local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
+                }
+                //lower right corner
+                else if (y + (w - 1) / 2 > max_y - 1 && x + (w - 1) / 2 > max_x - 1)
+                {
+                    x_begin = x - (w - 1) / 2;
+                    x_end = max_x;
+                    y_begin = y - (w - 2) / 2;
+                    y_end = max_y;
+                    local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
+                }
+                //lower left corner
+                else if (y + (w - 1) / 2 > max_y - 1 && x - (w - 1) / 2 < 0)
+                {
+                    x_begin = 0;
+                    x_end = x + (w - 1) / 2;
+                    y_begin = y - (w - 1) / 2;
+                    y_end = max_y;
+                    local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
+                }
+                //lower edge
+                else if (y + (w - 1) / 2 > max_y - 1 && x + (w - 1) / 2 < max_x && x - (w - 1) / 2 >= 0)
+                {
+                    y_begin = y - (w - 1) / 2;
+                    y_end = max_y;
+                    x_begin = x - (w - 1) / 2;
+                    x_end = x + (w - 1) / 2;
+                    local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
+                }
+                //upper edge
+                else if (y - (w - 1) / 2 < 0 && x + (w - 1) / 2 < max_x && x - (w - 1) / 2 >= 0)
+                {
+                    y_begin = 0;
+                    y_end = y + (w - 1) / 2;
+                    x_begin = x - (w - 1) / 2;
+                    x_end = x + (w - 1) / 2;
+                    local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
+                }
+                //left edge
+                else if (x - (w - 1) / 2 < 0 && y + (w - 1) / 2 < max_y && y - (w - 1) / 2 >= 0)
+                {
+                    x_begin = 0;
+                    x_end = x + (w - 1) / 2;
+                    y_begin = y - (w - 1) / 2;
+                    y_end = y + (w - 1) / 2;
+                    local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
+                }
+                //right edge
+                else if (x + (w - 1) / 2 > max_x - 1 && y + (w - 1) / 2 < max_y && y - (w - 1) / 2 >= 0)
+                {
+                    x_begin = x - (w - 1) / 2;
+                    x_end = max_x;
+                    y_begin = y - (w - 1) / 2;
+                    y_end = y + (w - 1) / 2;
+                    local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
+                }
+
+                //convolve
+                float conv_sum = 0.0f;
+                for (int i = -(w - 1) / 2; i <= (w - 1) / 2; i++)
+                {
+                    for (int j = -(w - 1) / 2; j <= (w - 1) / 2; j++)
+                    {
+                        if (y + i < 0 || x + j < 0 || y + i > max_y - 1 || x + j > max_x - 1)
+                        {
+                            conv_sum += local_avg * kernel.at<float>((w - 1) / 2 - i, (w - 1) / 2 - j);
+                        }
+                        else
+                        {
+                            conv_sum += (src.at<float>(y + i, x + j)) * kernel.at<float>((w - 1) / 2 - i, (w - 1) / 2 - j);
+                        }
+                    }
+                }
+                output.at<float>(y, x) = conv_sum;
             }
         }
+
         return output;
     }
 
@@ -106,11 +162,20 @@ namespace dip2
  * @param kSize Window size used by local average
  * @returns Filtered image
  */
-cv::Mat_<float> averageFilter(const cv::Mat_<float> &src, int kSize)
-{
-    // TO DO !!
-    return src.clone();
-}
+    cv::Mat_<float> averageFilter(const cv::Mat_<float> &src, int kSize)
+    {
+        // TO DO !!
+        //validate kernel size input
+        CV_Assert(kSize % 2 != 0);
+
+        //create kernel matrix
+        cv::Mat kernel = cv::Mat::ones(kSize, kSize, CV_32FC1);
+        float normalizer = (1 / ((float)kSize * kSize));
+        kernel *= normalizer;
+
+        //return convolution of input with kernel
+        return spatialConvolution(src, kernel);
+    }
 
     /**
  * @brief Median filter
@@ -158,7 +223,7 @@ cv::Mat_<float> averageFilter(const cv::Mat_<float> &src, int kSize)
     NoiseReductionAlgorithm chooseBestAlgorithm(NoiseType noiseType)
     {
         // TO DO !!
-        return (NoiseReductionAlgorithm)-1;
+        return NR_MOVING_AVERAGE_FILTER; //pls ignore if youre writing this part, I put this here just for testing
     }
 
     cv::Mat_<float> denoiseImage(const cv::Mat_<float> &src, NoiseType noiseType, dip2::NoiseReductionAlgorithm noiseReductionAlgorithm)
@@ -173,9 +238,9 @@ cv::Mat_<float> averageFilter(const cv::Mat_<float> &src, int kSize)
             switch (noiseType)
             {
             case NOISE_TYPE_1:
-                return dip2::averageFilter(src, 1);
+                return dip2::averageFilter(src, 7); //please ignore paramenters here, I put that in just for testing
             case NOISE_TYPE_2:
-                return dip2::averageFilter(src, 1);
+                return dip2::averageFilter(src, 9);
             default:
                 throw std::runtime_error("Unhandled noise type!");
             }
@@ -216,5 +281,5 @@ cv::Mat_<float> averageFilter(const cv::Mat_<float> &src, int kSize)
         "NR_MEDIAN_FILTER",
         "NR_BILATERAL_FILTER",
     };
-    
+
 }
