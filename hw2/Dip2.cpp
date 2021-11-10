@@ -10,7 +10,7 @@
 
 namespace dip2
 {
-
+    //small function for computing local average given some input paramenters
     float local_average(const cv::Mat_<float> &src, int x_begin, int x_end, int y_begin, int y_end)
     {
         //compute local window average
@@ -42,6 +42,8 @@ namespace dip2
         const int w = kernel.cols;
         const int max_y = src.rows;
         const int max_x = src.cols;
+        const int kernel_bound = (w - 1) / 2;
+
 
         //validate that kernel is a square, odd-sized matrix
         CV_Assert(w == kernel.rows && w % 2 != 0);
@@ -60,91 +62,91 @@ namespace dip2
                 float local_avg = 0.0f;
                 //if we encounter an edge case we use the local avg.
                 //upper left corner
-                if (y - (w - 1) / 2 < 0 && x - (w - 1) / 2 < 0)
+                if (y - kernel_bound < 0 && x - kernel_bound < 0)
                 {
                     x_begin = 0;
                     y_begin = 0;
-                    x_end = x + (w - 1) / 2;
-                    y_end = y + (w - 1) / 2;
+                    x_end = x + kernel_bound;
+                    y_end = y + kernel_bound;
                     local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
                 }
                 //upper right corner
-                else if (y - (w - 1) / 2 < 0 && x + (w - 1) / 2 > max_x - 1)
+                else if (y - kernel_bound < 0 && x + kernel_bound > max_x - 1)
                 {
-                    x_begin = x - (w - 1) / 2;
+                    x_begin = x - kernel_bound;
                     x_end = max_x;
                     y_begin = 0;
-                    y_end = y + (w - 1) / 2;
+                    y_end = y + kernel_bound;
                     local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
                 }
                 //lower right corner
-                else if (y + (w - 1) / 2 > max_y - 1 && x + (w - 1) / 2 > max_x - 1)
+                else if (y + kernel_bound > max_y - 1 && x + kernel_bound > max_x - 1)
                 {
-                    x_begin = x - (w - 1) / 2;
+                    x_begin = x - kernel_bound;
                     x_end = max_x;
                     y_begin = y - (w - 2) / 2;
                     y_end = max_y;
                     local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
                 }
                 //lower left corner
-                else if (y + (w - 1) / 2 > max_y - 1 && x - (w - 1) / 2 < 0)
+                else if (y + kernel_bound > max_y - 1 && x - kernel_bound < 0)
                 {
                     x_begin = 0;
-                    x_end = x + (w - 1) / 2;
-                    y_begin = y - (w - 1) / 2;
+                    x_end = x + kernel_bound;
+                    y_begin = y - kernel_bound;
                     y_end = max_y;
                     local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
                 }
                 //lower edge
-                else if (y + (w - 1) / 2 > max_y - 1 && x + (w - 1) / 2 < max_x && x - (w - 1) / 2 >= 0)
+                else if (y + kernel_bound > max_y - 1 && x + kernel_bound < max_x && x - kernel_bound >= 0)
                 {
-                    y_begin = y - (w - 1) / 2;
+                    y_begin = y - kernel_bound;
                     y_end = max_y;
-                    x_begin = x - (w - 1) / 2;
-                    x_end = x + (w - 1) / 2;
+                    x_begin = x - kernel_bound;
+                    x_end = x + kernel_bound;
                     local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
                 }
                 //upper edge
-                else if (y - (w - 1) / 2 < 0 && x + (w - 1) / 2 < max_x && x - (w - 1) / 2 >= 0)
+                else if (y - kernel_bound < 0 && x + kernel_bound < max_x && x - kernel_bound >= 0)
                 {
                     y_begin = 0;
-                    y_end = y + (w - 1) / 2;
-                    x_begin = x - (w - 1) / 2;
-                    x_end = x + (w - 1) / 2;
+                    y_end = y + kernel_bound;
+                    x_begin = x - kernel_bound;
+                    x_end = x + kernel_bound;
                     local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
                 }
                 //left edge
-                else if (x - (w - 1) / 2 < 0 && y + (w - 1) / 2 < max_y && y - (w - 1) / 2 >= 0)
+                else if (x - kernel_bound < 0 && y + kernel_bound < max_y && y - kernel_bound >= 0)
                 {
                     x_begin = 0;
-                    x_end = x + (w - 1) / 2;
-                    y_begin = y - (w - 1) / 2;
-                    y_end = y + (w - 1) / 2;
+                    x_end = x + kernel_bound;
+                    y_begin = y - kernel_bound;
+                    y_end = y + kernel_bound;
                     local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
                 }
                 //right edge
-                else if (x + (w - 1) / 2 > max_x - 1 && y + (w - 1) / 2 < max_y && y - (w - 1) / 2 >= 0)
+                else if (x + kernel_bound > max_x - 1 && y + kernel_bound < max_y && y - kernel_bound >= 0)
                 {
-                    x_begin = x - (w - 1) / 2;
+                    x_begin = x - kernel_bound;
                     x_end = max_x;
-                    y_begin = y - (w - 1) / 2;
-                    y_end = y + (w - 1) / 2;
+                    y_begin = y - kernel_bound;
+                    y_end = y + kernel_bound;
                     local_avg = local_average(src, x_begin, x_end, y_begin, y_end);
                 }
 
                 //convolve
                 float conv_sum = 0.0f;
-                for (int i = -(w - 1) / 2; i <= (w - 1) / 2; i++)
+                for (int i = -kernel_bound; i <= kernel_bound; i++)
                 {
-                    for (int j = -(w - 1) / 2; j <= (w - 1) / 2; j++)
+                    for (int j = -kernel_bound; j <= kernel_bound; j++)
                     {
                         if (y + i < 0 || x + j < 0 || y + i > max_y - 1 || x + j > max_x - 1)
                         {
-                            conv_sum += local_avg * kernel.at<float>((w - 1) / 2 - i, (w - 1) / 2 - j);
+                            conv_sum += local_avg * kernel.at<float>(kernel_bound - i, kernel_bound - j);
                         }
                         else
                         {
-                            conv_sum += (src.at<float>(y + i, x + j)) * kernel.at<float>((w - 1) / 2 - i, (w - 1) / 2 - j);
+                            conv_sum += (src.at<float>(y + i, x + j)) * kernel.at<float>(kernel_bound - i, kernel_bound - j);
                         }
                     }
                 }
@@ -240,7 +242,7 @@ namespace dip2
             case NOISE_TYPE_1:
                 return dip2::averageFilter(src, 7); //please ignore paramenters here, I put that in just for testing
             case NOISE_TYPE_2:
-                return dip2::averageFilter(src, 9);
+                return dip2::averageFilter(src, 7);
             default:
                 throw std::runtime_error("Unhandled noise type!");
             }
