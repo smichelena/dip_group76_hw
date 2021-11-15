@@ -8,10 +8,11 @@
 using namespace std;
 using namespace cv;
 
-Mat averagePool(Mat image, Mat kernel, int weight)
+Mat spatialConvolution(Mat image, Mat kernel)
 {   
     int stride = 1;
     int kernel_size = kernel.rows;
+    int weight =1;
 
     // create padding
     Mat fill1 = Mat::ones(((kernel_size-1)/2), image.cols, CV_8UC1);
@@ -30,7 +31,7 @@ Mat averagePool(Mat image, Mat kernel, int weight)
     hconcat(pre_target, h_fill, target);
     hconcat(h_fill, target, target);
 
-    //cout << "given target matrix " << target << endl;
+    //cout << "given target matrix " << target.cols << endl;
 
     // create output image
     int w, h;
@@ -47,18 +48,18 @@ Mat averagePool(Mat image, Mat kernel, int weight)
 
     int i, j;
 
-    for(int r = 1; r < target.rows - 1; r++) {
+    for(int r = (kernel_size - 1)/2; r < target.rows - (kernel_size - 1)/2; r++) {
 
-        for(int c = 1; c < target.cols - 1; c++) {
+        for(int c = (kernel_size - 1)/2; c < target.cols - (kernel_size - 1)/2; c++) {
 
             if ((r % stride == 0) && (c % stride == 0)){
-                i = r-1;
-                j = c-1;
+                i = r-((kernel_size-1)/2);
+                j = c-((kernel_size-1)/2);
 
                 uchar* ptr_res = out_img.ptr<uchar>(i);
 
                 // iterate through row space
-                if (r < target.rows - (kernel_size - 1)){
+                if (r < target.rows - (kernel_size - 1)/2){
 
                     for(int shift_row = 0; shift_row < kernel_size; shift_row++){
 
@@ -66,7 +67,7 @@ Mat averagePool(Mat image, Mat kernel, int weight)
                         uchar* ptr_target = target.ptr<uchar>((r-((kernel_size-1)/2)) + shift_row);
                         uchar* ptr_kernel = kernel.ptr<uchar>((kernel_size-1) - shift_row);
 
-                        if (c < target.cols - (kernel_size - 1)){
+                        if (c < target.cols - (kernel_size - 1)/2){
 
                             for(int shift_column = 0; shift_column < kernel_size; shift_column++){
 
@@ -74,7 +75,7 @@ Mat averagePool(Mat image, Mat kernel, int weight)
                                 Bpoint = ptr_target[(c-((kernel_size-1)/2)) + shift_column];
                                 Apoint = ptr_kernel[(kernel_size-1) - shift_column];
 
-                                /*cout << " at position " << r << ", " << c << endl;
+                                /*cout << "\n" << " at target position " << (r-((kernel_size-1)/2)) + shift_row << ", " << (c-((kernel_size-1)/2)) + shift_column << endl;
                                 cout << "Bpoint is " << Bpoint << endl;
                                 cout << "Apoint is " << Apoint << endl;*/
 
@@ -86,6 +87,9 @@ Mat averagePool(Mat image, Mat kernel, int weight)
                     }
 
                 }
+
+                /*cout << " at target position " << r << ", " << c << endl;
+                cout << " into res position " << i << ", " << j << endl;*/
 
                 uchar Bpixel = (uchar) Bpixel_sum;
                 ptr_res[j] = Bpixel;
