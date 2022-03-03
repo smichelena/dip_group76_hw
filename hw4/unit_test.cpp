@@ -100,6 +100,7 @@ bool test_circShift(void)
             return false;
         }
     }
+    cout << "circ shift seems correct!"<< endl;
     return true;
 }
 
@@ -158,6 +159,7 @@ bool test_DFTReal2Complex()
         }        
     }
     
+    cout << "DFTReal2Complex seems correct!" << endl;
     return true;
 }
 
@@ -204,6 +206,7 @@ bool test_IDFTComplex2Real()
         }
     }
     
+    cout << "IDFTComplex2Real() seems correct!" << endl;
     return true;
 }
 
@@ -272,6 +275,7 @@ bool test_computeInverseFilter()
             }
 
     }
+    cout << "computeInverseFilter() seems correct!" << endl;
     return true;
 }
 
@@ -322,6 +326,7 @@ bool test_applyFilter()
             
         }
     }
+    cout << "Dip4::applyFilter() seems correct!" << endl;
     return true;
 }
 
@@ -366,6 +371,7 @@ bool test_inverseFilter()
             return false;
         }
     }
+    cout << "Dip4::inverseFilter() seems correct!" << endl;
     return true;
 }
 
@@ -445,6 +451,7 @@ bool test_computeWienerFilter()
                 }
         }
     }
+    cout << "computeWienerFilter() seems correct!" << endl;
     return true;
 }
 
@@ -492,6 +499,7 @@ bool test_wienerFilter()
             return false;
         }
     }
+    cout << "Dip4::wienerFilter() seems correct!" << endl;
     return true;
 }
 
